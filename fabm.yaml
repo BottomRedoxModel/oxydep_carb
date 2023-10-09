@@ -1,0 +1,262 @@
+# This is .YAML file for BROM biogoechemical model.
+# Please don't write more than 72 symbols in one line, 
+# never use "TAB" and simplify your life by adding references !
+#----------------------------------------------------------------------
+check_conservation: false
+require_initialization: true
+instances:
+#----------------------------------------------------------------------
+  B_LIGHT:
+#----------------------------------------------------------------------
+    long_name: light
+    model: niva/light
+    parameters:
+      EPS0r: 0.07 #0.04        # background shortwave attenuation (1/m), default = 0.04
+      EPSESS: 4e-05      # specific shortwave attenuation of silt (m^2/mg), default = 4e-05
+      pEIR_eow: 0.5      # photosynthetically active fraction of shortwave radiation (-), default = 0.5 
+#----------------------------------------------------------------------
+  B_OXYDEP:
+#----------------------------------------------------------------------
+    long_name: oxydep
+    model: niva/oxydep  
+    initialization:
+      Phy: 0.01
+      Het: 0.01
+      POM: 0.01
+      DOM: 0.0
+      NUT: 5.
+      Oxy: 350.
+ #   coupling:
+ #     DIC: B_C/DIC
+ #     Alk: B_C/Alk
+    parameters:
+# Oxy
+      O2_suboxic: 30.    # =30. O2 threshold for oxic/suboxic switch (mmol/m3)
+# PHY
+      Max_uptake: 4.0 #1.5   # Maximum nutrient uptake rate (1/d)
+      Knut: 1.8 ##1.5 #0.5 #3.0 #1. #0.75          # Half-sat.const. for uptake of NUT by phy for NUT/PHY ratio, (1/d)
+      Iopt: 50. ##80. #           # Optimal irradiance (W/m2) =50 (Savchuk, 2002)
+      phy_t_dependence: 2 # select dependence of Phy growth rate on temperature (details and references are in the code):
+                          # (1) Old (ERGOM); (2) for Arctic; (3) ERSEM
+      r_phy_nut: 0.05     # Specific respiration rate, (1/d)
+      r_phy_pom: 0.15  #0.15     # Specific rate of Phy mortality, (1/d)
+      r_phy_dom: 0.17     # Specific rate of Phy excretion, (1/d)
+      r_phy_pom_anox: 0.4 # Specific rate of Phy mortality in suboxic/anoxic conditions(1/d)
+      O2_add_mor_phy: 20. # Threshold O2 value for additional Phy mortality, (mmol/m3)
+# HET
+      r_phy_het: 0.4 #1.5 ###1. #2.9      ##2.9 #2.8 #1.2  Max.spec. rate of grazing of ZOO on PHY, (1/d)
+      Kphy: 0.7 # 0.7 ## 0.1 #0.3          # Half-sat.const.for grazing of Zoo on Phy for Phy/Zoo ratio, (nd)
+      r_pop_het: 0.7     # Max.spec. rate of grazing of ZOO on POM , (1/d)
+      Kpop: 2.0          # Half-sat.const.for grazing of ZOO on POM for POM/ZOO ratio, (nd)
+      r_het_nut: 0.05    # Specific ZOO respiration rate (1/d)
+      r_het_pom: 0.02   #0.13 ##0.10    # Specific ZOO mortality rate (1/d)
+      uz: 0.6            # Food absorbency for Zoo (nd)
+      hz: 0.5           # Ratio between diss. and part. excretes of Zoo (nd)
+# POM
+      r_pom_dom: 0.005    # Specific rate of POM decomposition, (1/d)
+      r_pom_nut_oxy: 0.006 # Specific rate of POM oxic decay, (1/d)
+      r_pom_nut_nut: 0.003 # Specific rate of POM denitrification, (1/d)
+# DOM  
+      r_dom_nut_oxy: 0.020 #0.030 #0.015 # Specific rate of DOM oxic decay, (1/d)
+      r_dom_nut_nut: 0.010 # Specific rate of DOM denitrification, (1/d)
+      Tda: 13.             # Coefficient for dependence of mineralization on t   
+      beta_da: 20.         # Coefficient for dependence of mineralization on t 
+# Lower boundary
+      Bu: 0.9            # Burial coeficient for lower boundary (0<Bu<1), 1 - for no burying, (nd)
+      Trel: 1.e6         # Relaxation time for exchange with the sediments (s/m)
+      b_ox: 0.           # OXY in the sediment, (mmol/m3)
+      b_dom_ox: 2.       # OM in the sediment (oxic conditions), (mmol/m3)  
+      b_dom_anox: 10.    # OM in the sediment (anoxic conditions), (mmol/m3)  
+      b_nut: 20.         # NUT in the sediment, (mmol/m3)  
+# Upper boundary
+      l_bubble: 0.       # large bubbles effect for air-sea flux (1 for yes, 0 for no)
+      s_bubble: 0.       # small bubbles effect for air-sea flux (1 for yes, 0 for no)
+      use_aice: true     # switch parameter for ice area limitation of air-sea flux (true/false)     
+# Stochiometric coefficients
+      NtoB: 0.016        # N[uM]/BIOMASS [mg/m3], (uM(N) / mgWW/m3)
+      OtoN: 8.625        # Redfield (138/16) to NO3, (uM(O)/uM(N))
+      CtoN: 6.625        # Redfield (106/16) to NO3, (uM(C)/uM(N))
+      NtoN: 5.3          # Richards denitrification (84.8/16.), (uM(N)/uM(N))
+# Sinking
+      Wphy: -0.25        # PHY sinking rate, (m/d) "-" is needed for using with FVCOM
+      Whet: -0.4         # HET sinking rate, (m/d)  
+      Wpom: -15.         # POM sinking rate, (m/d) 
+#
+      EPS:  0.04         # background attenuation by phy, het, pom(s) (1/m), default = 0.04
+#----------------------------------------------------------------------
+  B_C:
+#----------------------------------------------------------------------
+    long_name: carbon
+    model: niva/brom_carbon
+    initialization:
+      DIC: 2100. #1800. #2050.0 # total dissolved inorganic carbon (mmol C/m^3)
+      Alk: 2300. #
+    coupling:
+      Kc0:   B_EQ/Kc0
+      Kc1:   B_EQ/Kc1
+      Kc2:   B_EQ/Kc2
+      Hplus: B_pH/Hplus
+    parameters:
+      l_bubble: 1.   # large bubbles effect for air-sea flux (1 for yes, 0 for no)
+      s_bubble: 1.   # small bubbles effect for air-sea flux (1 for yes, 0 for no)
+      use_aice: true # switch parameter for ice area limitation of air-sea flux (true/false)
+#----------------------------------------------------------------------
+  B_pH:
+#----------------------------------------------------------------------
+    long_name: pH
+    model: niva/brom_pH
+    coupling:
+      Kc1:      B_EQ/Kc1
+      Kc2:      B_EQ/Kc2
+      Kb:       B_EQ/Kb
+      Kp1:      B_EQ/Kp1
+      Kp2:      B_EQ/Kp2
+      Kp3:      B_EQ/Kp3
+      KSi:      B_EQ/KSi
+      Knh4:     B_EQ/Knh4
+      Kh2s:     B_EQ/Kh2s
+      kso4:     B_EQ/kso4
+      kflu:     B_EQ/kflu
+      Kw:       B_EQ/Kw
+      tot_free: B_EQ/tot_free
+      DIC:      B_C/DIC
+      PO4:      zero
+      Si:       zero
+      NH4:      zero
+      H2S:      zero
+      SO4:      zero
+#----------------------------------------------------------------------
+  B_EQ:
+#----------------------------------------------------------------------
+    long_name: equilibrium_constants
+    model: niva/brom_eq_constants
+#----------------------------------------------------------------------
+  B_Ca:
+#----------------------------------------------------------------------
+    long_name: calcium
+    model: niva/brom_calcium
+    initialization:
+      CaCO3: 0.0
+    coupling:
+      DIC:  B_C/DIC
+      CO3:  B_C/CO3
+      Wadd: zero #B_Mn/Wadd
+    parameters:
+      K_caco3_diss: 3.0  
+        #! CaCO3 dissollution rate constant (1/d) (wide ranges 
+        #  are given in (Luff et al., 2001))
+      K_caco3_form: 0.0002  
+        #! CaCO3 precipitation rate constant (1/d) (wide ranges 
+        #  are given in (Luff et al., 2001))
+      WCa: -7.0  
+      WCa_tot: -5.0  
+        #! Rate of sinking of detritus (m/d), =0.4 (Savchuk, 2002), =5. (Gregoire, Lacroix, 2001), =1-370 (Alldredge, Gotschalk, 1988)
+#----------------------------------------------------------------------
+  B_CH4:
+#----------------------------------------------------------------------
+    long_name: methane
+    model: niva/brom_methane
+    parameters:
+      s_omso_o2: 25.0
+         # threshold of o2 for OM sulfate reduction
+      s_omso_no3: 5.0
+         # threshold of noX for OM sulfate reduction
+      s_omch_so4: 30.
+         # Threshold of of SO4 for methane production from OM
+      K_DOML_ch4: 0.000014
+         # Specific rate of methane production from DON (Lopes et al., 2011)
+      K_POML_ch4: 0.000014
+         # Specific rate of methane production from POML
+      K_POMR_ch4: 0.0000014
+         # Specific rate of methane production from POMR
+      K_DOMR_ch4: 0.0000014
+         # Specific rate of methane production from DOMR
+      K_ch4_o2: 0.10 #0.10 1/d "0.2+/-0.1 d-1" (Chan et al., 2019)
+         # Specific rate of oxidation of CH4 with O2 (calculated from XXX, 0.4 1/d for O2= 100) !  in 2-3 orders of magnitude smaller (IPS)
+      K_ch4_so4: 0.00000274 #0.0000274
+         # Specific rate of oxidation of CH4 with SO4
+      s_OM_refr: 100.0   # threshold of refractory OM for decay
+      r_n_p: 16.0   # N[uM]/P[uM]
+      r_c_n: 6.625  # C[uM]/N[uM]
+      l_bubble: 0.   # large bubbles effect for air-sea flux (1 for yes, 0 for no)
+      s_bubble: 0.   # small bubbles effect for air-sea flux (1 for yes, 0 for no)
+      use_aice: true # switch parameter for ice area limitation of air-sea flux (true/false)
+    initialization:
+      CH4: 0.001 
+    coupling:
+      DIC:  B_C/DIC
+      O2:   B_OXYDEP/Oxy
+      DOML: B_OXYDEP/DOM
+      POML: B_OXYDEP/POM
+      NO3:  B_OXYDEP/NUT
+      #O2:  B_BIO/O2
+      #DOML: B_BIO/DOML
+      #DOMR: B_BIO/DOMR
+      #POML: B_BIO/POML
+      #POMR: B_BIO/POMR
+      #NO3: B_NUT/NO3
+      #PO4: B_NUT/PO4
+      #NH4: B_NUT/NH4
+      #SO4: B_S/SO4
+#----------------------------------------------------------------------
+  B_Bubble:
+#----------------------------------------------------------------------
+    long_name: bubble
+    model: niva/brom_bubble
+    initialization:
+      Bubble: 0.0
+    coupling:
+      DIC:  B_C/DIC
+      pCO2: B_C/pCO2
+      CH4:  B_CH4/CH4
+    parameters:
+      what_gas: 1 # bubbles contain: 0 for CO2
+                  #                  1 for CH4
+      N_bub: 100
+        # number of bubbles (-)
+      R: 8.314 
+        # gas constant (n m)/(TK Mol)
+      pi: 3.14159
+        # Pi number (-)
+      TK: 273.15
+        # Kelvin to Celsius conversion (deg Kelvin)
+      P_A: 101325.0
+        # Atmospheric pressure (pa)
+      g: 9.81 
+        # gravitational acceleration (m/s2)
+      sigma: 72.86E-3
+        # surface tension for water (N/m)
+      Henry: 1.4e-2 #3.3E-1
+        # Henry constant for CO2 (mmol/m3/Pa) 3.3 10-4 mol/m3/Pa (Sanders,2015)
+        #                for CH4 (mmol/m3/Pa) 1.4 10-5 mol/m3/Pa (Sanders,2015)
+      Df: 1.24e-9
+        # CO2 diffusivity (m2/s) 1.65e-9 m2/s(Perry,Green,2008) 1.6e-5 m2/s (0.16 cm2/s at 20C) (Engineering ToolBox,2018) 
+        # CH4 diffusivity (m2/s)   1.24E-9 m2/s (1.24E-5 cm2/s at 10C for gases in water)(Engineering ToolBox,2018)
+  #    K_Bubble_diss: 100
+        # rate of dissolution of gaseous CO2 (1/day) (100s of seconds for 100% (Liang,2011))
+      W_float: -34560  #-34560.
+        # Rate of floating (m/d) 20 cm/sec = *86400(to_day)/100(to_m)= 17280 m/d, here we put upper limit 
+
+        
+# REFERENCES:
+#  Alldredge, A.L. and Gotschalk, C., 1988. In situ settling behavior of marine snow. Limnology and Oceanography, 33(3), pp.339-351.
+#  Boudreau, B. P.: A method-of-lines code for carbon and nutrient diagenesis in aquatic sediments, Comput. Geosci., 22(5), 479-496, doi:10.1016/0098-3004(95)00115-8, 1996.
+#  Burchard H., Bolding K., Khn W., Meister A., Neumann T. and Umlauf L., 2006. Description of a flexible and extendable physicalbiogeochemical model system for the water column. Journal of Marine Systems, 61(3), 180-211.
+#  Dickson AG. 1990. Thermodynamics of the dissociation of boric acid in synthetic seawater from 273.15 to 318.15 K. Deep-Sea Research Part a-Oceanographic Research Papers. 37:755-766
+#  Dickson, A.G., Sabine, C.L. and Christian, J.R., 2007. Guide to Best Practices for Ocean CO2 Measurements.
+#  DOE (1994) Handbook of methods for the analysis of the various parameters of the carbon dioxide system in sea water; version 2, A. G. Dickson & C. Goyet, eds., ORNL/CDIAC-74.
+#  Gregoire M. and Lacroix G., 2001. Study of the oxygen budget of the Black Sea waters using a 3D coupled hydrodynamicalbiogeochemical model. Journal of marine systems, 31(1), pp.175-202.
+#  Konovalov, S.K., Murray, J.W., Luther, G.W.,  Tebo, B.M., 2006. Processes controlling the Redox budget for oxic/anoxic water column of the Black Sea. Deep Sea Research (II) 53: 1817-1841. 
+#  Link JS, Griswold CA, Methratta ET, Gunnard J, Editors. 2006. Documentation for the Energy Modeling and Analysis eXercise (EMAX). US Dep. Commer., Northeast Fish. Sci. Cent. Ref. Doc. 06-15; 166 p.
+#  Millero FJ , 1995 Thermodynamics of the carbon dioxide system in the oceans. Geochimica et Cosmochimica Acta 59 (4), 661-677
+#  Luff R., Haeckel M., and Wallmann K. 2001. Robust and fast FORTRAN and MATLAB libraries to calculate pH distributions in marine systems, Comput. Geosci., 27, 157169
+#  Popova EE, Srokosz MA. 2009. Modelling the ecosystem dynamics at the Iceland-Faeroes Front: Biophysical interactions, J. Mar. Syst., 77(1-2), 182196, doi:10.1016/j.jmarsys.2008.12.005, 2009.
+#  Savchuk O. 2002. Nutrient biogeochemical cycles in the Gulf of Riga: scaling up field studies with a mathematical model. J. Mar. Syst. 32: 253-280.
+#  Volkov II. 1984. Geokhimiya Sery v Osadkakh Okeana (Geochemistry of Sulfur in Ocean Sedi-ments), Nauka, Moscow, USSR.
+#  Van Cappellen P., Wang, Y. F. 1996: Cycling of iron and manganese in surface sediments: A general theory for the coupled transport and reaction of carbon, oxygen, nitrogen, sulfur, iron, and manganese, Am. J. Sci., 296(3), 197243, doi:10.2475/ajs.296.3.197, 1996.
+#  Weiss RF. 1974 Carbon dioxide in water and seawater: the solubility of a non-ideal gas.Marine Chemistry 2:203-215.
+#  Yakushev E., Neretin L., 1997. One-dimensional modelling of nitrogen and sulphur cycles in the aphotic zones of the Black Sea and Arabian Sea. Global Biogeochem. Cycles 11 3.,401414.
+#  Yakushev EV, Pollehne F., Jost G., Kuznetsov I., Schneider B., Umlauf L. 2007. Analysis of the water column oxic/anoxic interface in the Black and Baltic seas with a numerical model, Mar. Chem., 107(3), 388410.
+#  Yakushev E. 2013. RedOx Layer Model: A Tool for Analysis of the Water Column Oxic/Anoxic Interface Processes. In: E.V.Yakushev (ed.) Chemical Structure of Pelagic Redox Interfaces: Observation and Modeling, Hdb Env Chem (2013) 22: 203-234, DOI 10.1007/698_2012_145, Springer-Verlag Berlin Heidelberg 
+# IMPORTANT !!!! _ <TAB> is NOT allowed here, used <Space> only !!!!
+
